@@ -1,0 +1,50 @@
+use trasplantes
+
+-- contenido de tabla pacientes_trasplantados 
+
+select * from pacientes_trasplantados
+
+-- cantidad de trasplantes realizados
+
+select count(implante) as cant_trasplantes
+from pacientes_trasplantados
+
+--cantidad instituciones en donde se realizaron donaciones
+
+select count(distinct institucion) as cant_instituciones
+from pacientes_trasplantados
+
+-- cantidad de trasplante por organo, ordenado de mayor a menor
+
+select implante, count(implante) as cantidad_organo_trasplantado
+from pacientes_trasplantados
+group by implante
+order by cantidad_organo_trasplantado desc
+
+-- cantidad de trasplantes por edad
+
+select edad, count(implante) as cantidad_organo_trasplantado
+from pacientes_trasplantados
+group by edad
+order by cantidad_organo_trasplantado desc
+
+-- cantidad de trasplantes por sexo
+
+select sexo, count(implante) as cantidad_organo_trasplantado
+from pacientes_trasplantados
+group by sexo
+order by cantidad_organo_trasplantado desc
+
+-- recuento de implantes hechos en cada institucion
+
+select institucion, count(implante) as cant_implantes 
+from pacientes_trasplantados
+group by institucion 
+order by cant_implantes desc
+
+-- trasplantado mas joven
+
+select *
+from pacientes_trasplantados
+where edad = ( select min(edad) from pacientes_trasplantados)
+
