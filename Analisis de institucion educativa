@@ -1,0 +1,213 @@
+
+-- cantidad de cursos y carreras del area data
+
+select count(tipo) as cantidad, Tipo
+from Asignaturas
+where area=5
+group by Tipo;
+
+-- nombre, dni y telefono de estudiantes que sean agronomos de profesion y hayan nacido entre 1970-2000
+
+select * from Estudiantes
+where profesion = 6 and [Fecha de Nacimiento] between '1970-01-01' and '2020-12-31'
+
+/* listado de los docentes que ingresaron en el año 2021 y concatenando nombre y apellido, utilizando separador '-'
+Se renombra la nueva columna como Nombres_Apellidos y los resultados se mostraran en mayusculas.*/
+
+select upper(concat(nombre, '-' + apellido)) as nombres_apellidos
+from Staff
+where [Fecha Ingreso] like '%2021%'
+
+/* Cantidad de encargados de docentes y de tutores. Se renombra la columna como CantEncargados y se saca la palabra 'Encargado' en cada uno de los registros. Se renombra la columna como NuevoTipo. */
+
+select count(Encargado_ID) as cantEncargados, replace(tipo, 'encargado', '') as nuevoTipo
+from Encargado
+group by tipo;
+
+/* Precio promedio de las carreras y los cursos por jornada. Nueva columna: Promedio. Ordenados de mayor a menor.*/
+
+select AVG(costo) as promedio, Jornada, Tipo
+from Asignaturas
+group by Jornada, Tipo
+order by promedio
+
+/* Se calcula la edad de los estudiantes en una nueva columna renombrada como Edad. Se muestran solo los que son mayores de 18 años, de menor a mayores.*/
+
+select estudiantesid, nombre, apellido, DATEDIFF(YEAR, [Fecha de Nacimiento], '2023-05-29') as Edad
+from Estudiantes
+where DATEDIFF(YEAR, [Fecha de Nacimiento], '2023-05-29') > 18
+order by DATEDIFF(YEAR, [Fecha de Nacimiento], '2023-05-29') 
+
+
+/* Nombre, correo, camada y la fecha de ingreso de personas del staff que contienen correo '.edu' y su DocenteID es mayor o igual que 100. */
+
+select nombre, apellido, correo, camada, [fecha ingreso]
+from Staff
+where correo like '%.edu%' AND DocentesID >= 100
+
+/* Documento, domicilio, código postal y nombre de los primeros estudiantes que se registraron en la plataforma. */
+
+select top(10) documento, domicilio, [codigo postal], nombre, [Fecha Ingreso]
+from Estudiantes
+order by [Fecha Ingreso]
+
+/* Nombre, apellido y documento de identidad de los docentes y tutores que tienen asignaturas “UX”. */
+
+select apellido, nombre, documento
+from Staff
+where Asignatura in ( select Asignaturas.AsignaturasID from Asignaturas where nombre like '%ux%' )
+
+/* Se calcula el 25% de aumento para: las asignaturas del área de marketing de la jornada mañana. El nuevo costo esta en decimal con 3 digitos. 
+Se renombra el calculo del porcentaje como porcentaje y la suma del costo mas el porcentaje por NuevoCosto.*/
+
+select *, round((costo * 1.25),3) as NuevoCosto
+from asignaturas
+where jornada = 'manana' and Area = 2
+
+/* Se indica por jornada, la cantidad de docentes que dictan como cant_docentes y se suman los costos para las asignaturas de desarrollo web como suma_total. 
+El resultado contiene todos los valores registrados en la primera tabla. */
+
+select Asignaturas.jornada, count(staff.DocentesID) cant_docentes, sum(Asignaturas.Costo) suma_total
+from staff	
+left join Asignaturas
+on Asignaturas.asignaturasid = Staff.Asignatura
+where Asignaturas.Area = 3
+group by Jornada
+
+/* Se requiere saber el id del encargado, el nombre, el apellido y cuántos son los docentes que tiene asignados cada encargado. 
+Luego se filtran los encargados que tienen como resultado 0 ya que son los encargados que NO tienen asignado un docente.*/
+
+select Encargado.Encargado_ID, Encargado.Nombre, Encargado.Apellido, count(Staff.DocentesID) as cant_docentes
+from Encargado
+inner join staff
+on Encargado.Encargado_ID = Staff.Encargado
+group by encargado.Encargado_ID, Encargado.Nombre, Encargado.Apellido
+having count(Staff.DocentesID) != 0
+
+/* Datos de asignaturas que no tienen un docente asignado.*/
+
+select * from Asignaturas
+inner join Staff
+on Staff.Asignatura = Asignaturas.AsignaturasID
+
+/* 14
+Se quiere conocer la siguiente información de los docentes:
+El nombre completo, como NombresCompletos, el documento, meses de ingreso como meses_ingreso, 
+el nombre del encargado como NombreEncargado,
+el tefelono del encargado como telefonoEncargado,
+el nombre del curso o carrera,
+la jornada y el nombre del área.
+Solo se desean visualizar los que llevan más de 3 meses.
+Ordenado de mayor a menor. */
+
+select 
+	CONCAT(staff.Apellido, staff.Nombre, ' ') as nombresCompletos, Staff.Documento, DATEDIFF(MONTH, Staff.[Fecha Ingreso], '2023-05-29') as meses_ingreso,
+	Encargado.Nombre, Encargado.Telefono as telefonoEncargado,
+	Asignaturas.nombre, Asignaturas.Jornada, Asignaturas.Area
+from Staff
+inner join encargado
+	on staff.encargado = encargado.encargado_id
+inner join Asignaturas
+	on Staff.Asignatura = Asignaturas.AsignaturasID
+where DATEDIFF(MONTH, Staff.[Fecha Ingreso], '2023-05-29') > 3
+order by meses_ingreso
+
+ /* Por medio de la fecha de ingreso de los estudiantes se identifica cantidad total de estudiantes.
+Se muestranr los periodos de tiempo separados por año, mes y día, y se presenta la información ordenada por la fecha que más ingresaron estudiantes.
+*/
+
+select year([Fecha Ingreso]) as año, month([Fecha Ingreso]) as mes, day([fecha ingreso]) as dia, count(EstudiantesID) as cant_estudiantes
+from Estudiantes
+group by year([Fecha Ingreso]), month([Fecha Ingreso]), day([fecha ingreso])
+order by cant_estudiantes desc
+
+/*
+Análisis de encargados con más docentes a cargo: 
+Top 10 de los encargados que tiene más docentes a cargo, se filtran solo los que tienen a cargo docentes. 
+Ordenar de mayor a menor para poder tener el listado correctamente.
+*/
+
+select top(10) encargado.Encargado_ID, encargado.Tipo, count(Staff.DocentesID) as cant_docentes
+from Encargado
+inner join Staff
+on Encargado.Encargado_ID = Staff.Encargado
+group by Encargado.Encargado_ID, encargado.Tipo
+having Encargado.Tipo not like '%tutor%'
+order by cant_docentes desc
+
+/*
+Análisis de profesiones con más estudiantes: 
+Profesión y la cantidad de estudiantes que la ejercen, se muestra el listado solo de las profesiones que tienen más de 5 estudiantes.
+Ordenado de mayor a menor por la profesión que tenga más estudiantes.
+*/
+
+select profesiones.ProfesionesID, Profesiones.Profesiones, count(Estudiantes.Profesion) as cant_estudiantes
+from Profesiones
+inner join Estudiantes
+on Profesiones.ProfesionesID = Estudiantes.Profesion
+group by Profesiones.ProfesionesID, Profesiones.Profesiones
+having count(Estudiantes.Profesion) > 5
+order by cant_estudiantes desc
+
+/*
+Análisis encargado tutores jornada noche: nombre del encargado, el documento de identidad, el número de la camada y la fecha de ingreso del tutor. De mayor a menor.
+*/
+
+select Encargado.Nombre, Encargado.Documento, replace(Staff.Camada,'camada', '') as camada, Staff.[Fecha Ingreso]
+from Encargado
+inner join Staff
+on Encargado.Encargado_ID = Staff.Encargado
+order by camada desc
+
+/* Análisis asignaturas mayor al promedio: se muestra el nombre de la asignatura, el costo de la asignatura y el promedio del costo de las asignaturas por área. 
+Una vez obtenido el promedio se visualiza solo las carreras que se encuentran por encima del promedio. 
+*/
+
+select Area.Nombre, Asignaturas.Nombre, null as promedio
+from Asignaturas
+inner join Area
+on Asignaturas.Area = Area.AreaID
+group by Asignaturas.Nombre, Area.Nombre
+union 
+select Area.Nombre, Asignaturas.Nombre, AVG(Asignaturas.Costo) AS promedio
+FROM Asignaturas
+INNER JOIN Area ON Asignaturas.Area = Area.AreaID
+GROUP BY Asignaturas.Nombre, Area.Nombre;
+
+/*
+Análisis aumento de salario docente: 
+Se muestra nombre, documento de identidad, el área, la asignatura y el aumento del salario del docente. Todas las áreas tienen un porcentaje distinto, Marketing-17%, Diseño-20%, Programación-23%, Producto-13%, Data-15%, Herramientas 8%
+*/
+
+select concat(Staff.Nombre, ' ' + Staff.Apellido) as docente, Staff.Documento, Staff.Asignatura, Asignaturas.Nombre as asignatura, area.Nombre as area, Asignaturas.Costo * (
+	case 
+		when Area.AreaID = 1 then 1.2
+		when Area.areaid = 2 then 1.17 
+		when Area.AreaID = 3 then 2.3
+		when Area.AreaID = 4 then 1.3
+		when Area.areaid = 5 then 1.5 
+		when Area.AreaID = 6 then 0.8
+	end) as salario
+from Asignaturas
+inner join Staff
+on  Asignaturas.AsignaturasID = Staff.Asignatura
+inner join Area
+on Asignaturas.Area = Area.AreaID
+
+/* Análisis de docentes por camada/comisión: 
+Número de documento de identidad, nombre del docente y camada, para identificar la camada mayor y la menor según el número de la camada. 
+Número de documento de identidad, nombre de docente y camada para identificar la camada con fecha de ingreso, Mayo 2021. 
+Se agrega un campo indicador que informe cuáles son los registros 'mayor o menor' y los que son 'mayo 2021' y se ordena el listado de menor a mayor por camada.
+*/
+
+select Staff.Nombre, Staff.Apellido, Staff.Documento, Staff.Camada, Staff.[Fecha Ingreso], 'mayor' 
+from Staff
+where Camada = ( select max(Camada) from Staff )
+union
+select Staff.Nombre, Staff.Apellido, Staff.Documento, Staff.Camada, Staff.[Fecha Ingreso], 'menor' 
+from Staff
+where Camada = ( select min(Camada) from Staff )
+union
+select Staff.Nombre, Staff.Apellido, Staff.Documento, Staff.Camada, Staff.[Fecha Ingreso], 'mayo' 
+from Staff
+where [Fecha Ingreso] in ( select [Fecha Ingreso] from Staff where [Fecha Ingreso] like '%05%')
