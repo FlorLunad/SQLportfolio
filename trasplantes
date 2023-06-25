@@ -1,50 +1,50 @@
-use trasplantes
+USE trasplantes;
 
 -- contenido de tabla pacientes_trasplantados 
 
-select * from pacientes_trasplantados
+SELECT * FROM pacientes_trasplantados;
 
 -- cantidad de trasplantes realizados
 
-select count(implante) as cant_trasplantes
-from pacientes_trasplantados
+SELECT COUNT(implante) AS cant_trasplantes
+FROM pacientes_trasplantados;
 
 --cantidad instituciones en donde se realizaron donaciones
 
-select count(distinct institucion) as cant_instituciones
-from pacientes_trasplantados
+SELECT COUNT(distinct institucion) AS cant_instituciones
+FROM pacientes_trasplantados;
 
--- cantidad de trasplante por organo, ordenado de mayor a menor
+-- cantidad de trasplante por órgano, ordenado de mayor a menor
 
-select implante, count(implante) as cantidad_organo_trasplantado
-from pacientes_trasplantados
-group by implante
-order by cantidad_organo_trasplantado desc
+SELECT implante, COUNT(implante) AS cantidad_organo_trasplantado
+FROM pacientes_trasplantados
+GROUP BY implante
+ORDER BY cantidad_organo_trasplantado DESC;
 
 -- cantidad de trasplantes por edad
 
-select edad, count(implante) as cantidad_organo_trasplantado
-from pacientes_trasplantados
-group by edad
-order by cantidad_organo_trasplantado desc
+SELECT edad, COUNT(implante) AS cantidad_organo_trasplantado
+FROM pacientes_trasplantados
+GROUP BY edad
+ORDER BY cantidad_organo_trasplantado DESC;
 
 -- cantidad de trasplantes por sexo
 
-select sexo, count(implante) as cantidad_organo_trasplantado
-from pacientes_trasplantados
-group by sexo
-order by cantidad_organo_trasplantado desc
+SELECT sexo, COUNT(implante) AS cantidad_organo_trasplantado
+FROM pacientes_trasplantados
+GROUP BY sexo
+ORDER BY cantidad_organo_trasplantado DESC;
 
--- recuento de implantes hechos en cada institucion
+-- recuento de implantes hechos en cada institución
 
-select institucion, count(implante) as cant_implantes 
-from pacientes_trasplantados
-group by institucion 
-order by cant_implantes desc
+SELECT institucion, COUNT(implante) AS cant_implantes 
+FROM pacientes_trasplantados
+GROUP BY institucion 
+ORDER BY cant_implantes DESC;
 
--- trasplantado mas joven
+-- trasplantado más joven
 
-select *
-from pacientes_trasplantados
-where edad = ( select min(edad) from pacientes_trasplantados)
+SELECT *
+FROM pacientes_trasplantados
+WHERE edad = (SELECT MIN(edad) FROM pacientes_trasplantados);
 
