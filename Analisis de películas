@@ -1,0 +1,120 @@
+USE movies;
+
+-- ver con que datos cuento en la tabla
+
+SELECT * FROM imdb_movies;
+
+-- cambiar nombres a los campos para que sean mas intuitivos
+
+EXEC sp_rename 'imdb_movies.orig_lang', 'language', 'column'
+EXEC sp_rename 'imdb_movies.names', 'movie', 'column'
+EXEC sp_rename 'imdb_movies.date_x', 'date_of_release', 'column'
+EXEC sp_rename 'imdb_movies.budget_x', 'budget', 'column';
+
+-- cantidad de peliculas 
+
+SELECT COUNT(names) AS cantidad_total
+FROM imdb_movies;
+
+--eliminar colunas que no utilizare
+
+ALTER TABLE imdb_movies
+DROP COLUMN crew, overview, orig_title, [status];
+
+-- pelicula con mayor inversion inicial 
+
+SELECT names
+FROM imdb_movies
+WHERE budget_x = (SELECT MAX(budget_x) FROM imdb_movies);
+
+/análisis de rentabilidad: Calculo el retorno de inversión (ROI) de cada película al comparar la inversión inicial con la ganancia obtenida para
+identificar las películas más rentables*/
+
+SELECT movie, genre, language, country, budget, revenue, (revenue - budget) as ganancia_neta, ROUND(((revenue - budget) / budget), 1) AS ROI
+FROM imdb_movies
+WHERE genre IS NOT NULL
+ORDER BY ROI DESC;
+
+-- idiomas mas presentes en las producciones cinematograficas
+
+SELECT COUNT(language) AS cantidad_peliculas, language 
+FROM imdb_movies
+GROUP BY language
+ORDER BY cantidad_peliculas DESC;
+
+/*análisis de tendencias de lanzamiento: Examina las fechas de lanzamiento de las películas para identificar patrones o tendencias a lo largo del tiempo. 
+Puedes investigar si hay meses o épocas del año en las que se lanzan más películas.*/
+
+SELECT YEAR(date_of_release) AS año_lanzamiento, COUNT(YEAR(date_of_release)) AS peliculas_hechas
+FROM imdb_movies
+GROUP BY YEAR(date_of_release)
+ORDER BY año_lanzamiento DESC;
+
+SELECT MONTH(date_of_release) AS mes_lanzamiento, COUNT(MONTH(date_of_release)) AS peliculas_hechas
+FROM imdb_movies
+GROUP BY MONTH(date_of_release)
+ORDER BY peliculas_hechas DESC;
+
+/*Análisis de géneros populares: Determina los géneros más populares en tu base de datos de películas según criterios como la cantidad de películas en cada género, 
+la ganancia total o el puntaje promedio. Esto puede ayudarte a comprender las preferencias del público y tomar decisiones informadas al seleccionar el género de una nueva película.*/
+
+--cantidad/genero
+
+SELECT COUNT(genre) AS cantidad_peliculas, genre
+FROM imdb_movies
+WHERE genre IS NOT NULL
+GROUP BY genre
+ORDER BY cantidad_peliculas DESC;
+
+-- ganancia total/genero
+
+SELECT genre, SUM(revenue-budget) AS ganancia_total
+FROM imdb_movies
+GROUP BY genre
+ORDER BY ganancia_total DESC;
+
+-- promedio/genero
+
+SELECT genre, AVG(score) as promedio_score
+FROM imdb_movies
+GROUP BY genre
+ORDER BY promedio_score DESC;
+
+/*Análisis de puntuaciones y críticas: Examinando los scores de las películas vemos las películas mejor y peor valoradas. Después, se analiza si hay alguna relación entre la puntuación y la ganancia neta*/
+
+-- mejores puntuadas
+
+SELECT TOP(10) *
+FROM imdb_movies
+ORDER BY score DESC;
+
+-- peores puntuadas
+
+SELECT *
+FROM imdb_movies
+WHERE SCORE != 0
+ORDER BY score ASC;
+
+-- puntaje/ganancia neta
+
+SELECT score, (revenue - budget) as ganancia_neta
+FROM imdb_movies
+GROUP BY score, (revenue - budget);
+
+-- ver cual es la pelicula más antigua de la tabla
+
+SELECT names , date_x
+FROM imdb_movies
+WHERE date_x = (SELECT MIN(date_x) FROM imdb_movies);
+
+-- peliculas lanzadas en el 2023 que estan en idioma ingles
+
+SELECT *
+FROM imdb_movies
+WHERE date_of_release LIKE '%2023%' AND language = 'English';
+
+-- peliculas lanzadas en el 2023 que no son de estados unidos
+
+SELECT *
+FROM imdb_movies
+WHERE date_of_release LIKE '%2023%' AND country != 'US';
